@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { Eye, EyeOff, LockKeyhole, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const API_URL = "http://localhost:8080";
 
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const router = useRouter();
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,7 +44,7 @@ export default function LoginPage() {
         setSuccess(true);
       }
 
-      // router.push("/dashboard");
+      router.push("/dashboard");
     } catch (err) {
       setError(
         err instanceof Error
