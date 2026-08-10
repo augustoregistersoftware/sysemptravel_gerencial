@@ -1,69 +1,171 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { FormEvent, useState } from "react";
+import { Eye, EyeOff, LockKeyhole, User } from "lucide-react";
+
+const API_URL = "http://localhost:8080";
+
+export default function LoginPage() {
+  const [usuario, setUsuario] = useState("");
+  const [senha, setSenha] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user: usuario,
+          password: senha
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Resposta da API:", data.error);
+
+      if (!response.ok) {
+        setSuccess(false);
+        throw new Error(data.error);
+      }
+      else {
+        setSuccess(true);
+      }
+
+      // router.push("/dashboard");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Erro ao realizar login"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <main className="min-h-screen bg-[#315da8] flex items-center justify-center px-4">
+      <section className="w-full max-w-[430px] rounded-[28px] bg-[#fbf8fc] px-7 py-8 shadow-xl">
+
+        <div className="text-center">
+          <img
+            src="/imagemlogin.png"
+            alt="SysempTravel"
+            className="mx-auto h-50 w-54 object-contain"
+          />
+
+          <h1 className="text-[38px] font-normal tracking-tight text-[#293346]">
+            Sysemp Travel
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <h2 className="mt-2 text-lg font-bold text-[#293346]">
+            Gerencial
+          </h2>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Entre na sua conta para continuar
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+
+        <form onSubmit={handleLogin} className="mt-10">
+
+          {/* Usuário */}
+          <div className="mb-4 flex h-[68px] items-center gap-3 rounded-xl bg-white px-4">
+            <User className="h-5 w-5 text-gray-500" />
+
+            <input
+              type="text"
+              placeholder="Usuário"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              autoComplete="username"
+              className="w-full bg-transparent text-gray-700 outline-none"
+              required
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          {/* Senha */}
+          <div className="flex h-[68px] items-center gap-3 rounded-xl bg-white px-4">
+            <LockKeyhole className="h-5 w-5 text-gray-500" />
+
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              autoComplete="current-password"
+              className="w-full bg-transparent text-gray-700 outline-none"
+              required
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-gray-500"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="ml-auto mt-6 block text-sm font-bold text-[#303849]"
           >
-            Documentation
-          </a>
+            Esqueci minha senha
+          </button>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-7 h-[58px] w-full rounded-[17px] bg-[#315da8] text-[17px] font-bold text-white shadow-lg transition hover:bg-[#274e91] disabled:opacity-60"
+          >
+            {loading ? "Entrando..." : "Entrar"}
+          </button>
+
+          {success && (
+            <div role="alert" className="alert alert-success fixed right-5 top-5 z-50 w-auto shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Login Realizado com Sucesso!</span>
+            </div>)}
+
+          {error && (
+            <div role="alert" className="alert alert-error fixed right-5 top-5 z-50 w-auto shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+        </form>
+
+        <div className="mt-10 flex justify-center gap-2 text-sm">
+          <span className="text-gray-500">
+            Não tem uma conta?
+          </span>
+
+          <button className="font-bold text-[#315da8]">
+            Criar conta
+          </button>
         </div>
-      </main>
-    </div>
+
+      </section>
+    </main>
   );
 }
