@@ -17,10 +17,71 @@ import {
   ArrowUpRight,
   ChevronRight,
 } from "lucide-react";
+import { useState } from "react";
+import { useEffect } from "react"
+
+interface Notification {
+  id: number;
+  email: string;
+  created_at: string;
+}
+var existeMensagem: boolean = false;
 
 export default function Dashboard() {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadNotifications(false);
+  }, []);
+
+  async function loadNotifications(abreModel: boolean) {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        "http://localhost:8080/users_approved_list"
+      );
+
+      const data = await response.json();
+      const users = data.users ?? [];
+
+      setNotifications(users);
+
+      if (users.length > 0) {
+        existeMensagem = true;
+      }
+
+      if (abreModel) {
+        document.getElementById("modal_notifications")?.classList.add("modal-open");
+      }
+
+    } catch (error) {
+      console.error("Erro ao carregar notificações:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function approveUser(id: number) {
+    try {
+      const response = await fetch(`http://localhost:8080/approved_user/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        console.error("Erro ao aprovar usuário:", response.statusText);
+      }
+
+      setNotifications((prev) =>
+        prev.filter((notification) => notification.id !== id)
+      );
+    } catch (error) {
+      console.error("Erro ao aprovar usuário:", error);
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-slate-800">
+    <form className="min-h-screen bg-[#f5f7fb] text-slate-800">
       <div className="flex min-h-screen">
 
         {/* SIDEBAR */}
@@ -142,13 +203,76 @@ export default function Dashboard() {
                 />
               </div>
 
-              <button className="relative rounded-xl p-2.5 transition hover:bg-slate-100">
+              <button type="button" onClick={() => loadNotifications(true)} className="relative rounded-xl p-2.5 transition hover:bg-slate-100" popoverTarget="modal_notifications">
                 <Bell size={20} className="text-slate-500" />
-                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
+                <span
+                  className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ${existeMensagem ? "bg-red-500" : "bg-transparent"
+                    }`}
+                />
               </button>
 
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#315da8] text-sm font-bold text-white lg:hidden">
                 AR
+              </div>
+
+              <div className="modal" id="modal_notifications" popover="auto">
+                <div className="modal-box bg-white text-slate-800" >
+
+                  <h3 className="text-lg font-bold">
+                    Notificações
+                  </h3>
+
+                  {loading && (
+                    <p className="py-4 text-slate-500">
+                      Carregando...
+                    </p>
+                  )}
+
+                  {!loading && notifications.length === 0 && (
+                    <p className="py-4 text-slate-500">
+                      Nenhuma notificação.
+                    </p>
+                  )}
+
+                  {!loading && notifications.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      {notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className="rounded-xl border border-slate-200 p-4"
+                        >
+                          <p className="font-semibold">
+                            {notification.email}
+                          </p>
+
+                          <p className="mt-1 text-sm text-slate-500">
+                            {notification.created_at}
+                          </p>
+
+                          <button
+                            className="mt-2 rounded-lg bg-[#315da8] px-3 py-1 text-sm font-semibold text-white transition hover:bg-[#274e91]"
+                            onClick={() => approveUser(notification.id)}
+                          >
+                            Aprovar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="modal-action">
+                    <a
+                      type="button"
+                      popoverTarget="modal_notifications"
+                      popoverTargetAction="hide"
+                      className="btn"
+                      href="/dashboard"
+                    >
+                      Fechar
+                    </a>
+                  </div>
+
+                </div>
               </div>
             </div>
           </header>
@@ -425,7 +549,7 @@ export default function Dashboard() {
           </div>
         </section>
       </div>
-    </main>
+    </form>
   );
 }
 
@@ -535,13 +659,12 @@ function Trip({
       <td className="px-6 py-5">
 
         <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            status === "Concluída"
-              ? "bg-emerald-50 text-emerald-600"
-              : status === "Em andamento"
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${status === "Concluída"
+            ? "bg-emerald-50 text-emerald-600"
+            : status === "Em andamento"
               ? "bg-blue-50 text-blue-600"
               : "bg-orange-50 text-orange-600"
-          }`}
+            }`}
         >
           {status}
         </span>

@@ -34,7 +34,6 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
-      console.log("Resposta da API:", data.error);
 
       if (!response.ok) {
         setSuccess(false);
